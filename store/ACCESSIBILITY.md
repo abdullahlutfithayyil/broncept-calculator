@@ -1,6 +1,6 @@
 # Accessibility Statement — Broncept Calculator
 
-_Last updated: <date>_
+_Last updated: October 23, 2026_
 
 Broncept is committed to making Calculator usable by everyone, including people who are blind or have low vision,
 are deaf or hard of hearing, have motor or dexterity differences, or have cognitive or learning disabilities.
@@ -26,4 +26,4 @@ are deaf or hard of hearing, have motor or dexterity differences, or have cognit
 - Font scaling is capped at 150% to keep keys readable inside their circles.
 
 ## Contact
-Found a barrier? Email **<your Broncept accessibility email>** and we will respond within 5 business days.
+Found a barrier? Email **lutfithayyil7309@gmail.com** and we will respond within 5 business days.

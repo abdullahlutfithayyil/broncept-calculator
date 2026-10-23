@@ -1,6 +1,6 @@
 # Privacy Policy — Broncept Calculator
 
-_Last updated: <date>_
+_Last updated: October 23, 2026_
 
 Broncept Calculator ("the app"), published by Broncept, does not collect, store, transmit or share any personal information.
 
@@ -10,4 +10,4 @@ Broncept Calculator ("the app"), published by Broncept, does not collect, store,
 
 Because no data is collected, there is no data to share, sell or delete.
 
-If this policy changes it will be updated here. Questions: <your contact email>
+If this policy changes it will be updated here. Questions: lutfithayyil7309@gmail.com
