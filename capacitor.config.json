@@ -1,0 +1,9 @@
+{
+  "appId": "com.broncept.calculator",
+  "appName": "Calculator",
+  "webDir": "www",
+  "backgroundColor": "#1D1D1D",
+  "plugins": {
+    "SystemBars": { "insetsHandling": "css", "style": "DEFAULT", "initialViewportFitValueHint": "cover" }
+  }
+}

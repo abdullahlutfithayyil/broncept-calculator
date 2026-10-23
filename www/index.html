@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#EBEBEB" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1D1D1D" media="(prefers-color-scheme: dark)">
+  <title>Calculator</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="calc">
+    <section class="display" aria-label="Display">
+      <div id="expr" class="expr">&nbsp;</div>
+      <div id="result" class="result">0</div>
+    </section>
+    <section class="keypad" aria-label="Keypad">
+      <button class="key fn" data-k="AC" aria-label="AC, all clear">AC</button>
+      <button class="key fn" data-k="±" aria-label="±, plus minus">±</button>
+      <button class="key fn" data-k="%" aria-label="%, percent">%</button>
+      <button class="key op" data-k="÷" aria-pressed="false" aria-label="Divide">÷</button>
+      <button class="key" data-k="7">7</button><button class="key" data-k="8">8</button><button class="key" data-k="9">9</button>
+      <button class="key op" data-k="×" aria-pressed="false" aria-label="Times">×</button>
+      <button class="key" data-k="4">4</button><button class="key" data-k="5">5</button><button class="key" data-k="6">6</button>
+      <button class="key op" data-k="−" aria-pressed="false" aria-label="Minus">−</button>
+      <button class="key" data-k="1">1</button><button class="key" data-k="2">2</button><button class="key" data-k="3">3</button>
+      <button class="key op" data-k="+" aria-pressed="false" aria-label="Plus">+</button>
+      <button class="key zero" data-k="0">0</button>
+      <button class="key" data-k="." aria-label="Point">.</button>
+      <button class="key op" data-k="=" aria-label="Equals">=</button>
+    </section>
+  </main>
+  <!-- Spoken feedback for screen-reader users (TalkBack); visually hidden -->
+  <div id="sr-status" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+  <script src="calc.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,115 @@
+name: Android build
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      publish_to_play:
+        description: 'Upload the signed bundle to Google Play (internal testing track)'
+        type: boolean
+        default: false
+      play_status:
+        description: 'Release status on Play (use "draft" until the app has been published once)'
+        type: choice
+        options: [draft, completed]
+        default: draft
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      KS_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      PLAY_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Install dependencies and run tests
+        run: |
+          npm ci
+          npm test
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Accessibility tests (WCAG contrast, labels, keyboard, screen-reader announcements)
+        run: |
+          pip install playwright
+          playwright install --with-deps chromium
+          (cd www && python3 -m http.server 8765 &)
+          sleep 2
+          python3 tests/a11y.py
+
+      - name: Sync web assets into the Android project
+        run: |
+          npx cap sync android
+          chmod +x android/gradlew
+
+      - name: Compute version
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then echo "VERSION_NAME=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"; else echo "VERSION_NAME=1.0.0" >> "$GITHUB_ENV"; fi
+          echo "VERSION_CODE=${{ github.run_number }}" >> "$GITHUB_ENV"
+          echo "APP_ID=$(node -p "require('./capacitor.config.json').appId")" >> "$GITHUB_ENV"
+
+      # Always: an installable APK for sideloading / quick testing (debug-signed)
+      - name: Build debug APK
+        working-directory: android
+        run: ./gradlew assembleDebug -PversionCode="$VERSION_CODE" -PversionName="$VERSION_NAME"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: calculator-debug-apk
+          path: android/app/build/outputs/apk/debug/*.apk
+
+      # Only when your upload keystore is configured as repository secrets
+      - name: Restore upload keystore
+        if: env.KS_B64 != ''
+        run: |
+          echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/upload.jks"
+          echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/upload.jks" >> "$GITHUB_ENV"
+          echo "ANDROID_KEYSTORE_PASSWORD=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> "$GITHUB_ENV"
+          echo "ANDROID_KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}" >> "$GITHUB_ENV"
+          echo "ANDROID_KEY_PASSWORD=${{ secrets.ANDROID_KEY_PASSWORD }}" >> "$GITHUB_ENV"
+
+      - name: Build signed release bundle (AAB) and APK
+        if: env.KS_B64 != ''
+        working-directory: android
+        run: ./gradlew bundleRelease assembleRelease -PversionCode="$VERSION_CODE" -PversionName="$VERSION_NAME"
+
+      - uses: actions/upload-artifact@v4
+        if: env.KS_B64 != ''
+        with:
+          name: calculator-release
+          path: |
+            android/app/build/outputs/bundle/release/*.aab
+            android/app/build/outputs/apk/release/*.apk
+
+      # Optional: push the bundle to Google Play (internal track). Needs the app to exist in Play Console
+      # and the very first release to have been uploaded manually.
+      - name: Upload to Google Play (internal)
+        if: env.KS_B64 != '' && env.PLAY_JSON != '' && github.event_name == 'workflow_dispatch' && inputs.publish_to_play
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: ${{ env.APP_ID }}
+          releaseFiles: android/app/build/outputs/bundle/release/app-release.aab
+          track: internal
+          status: ${{ inputs.play_status }}

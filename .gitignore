@@ -1,0 +1,13 @@
+node_modules/
+# Secrets — never commit
+*.jks
+*.keystore
+keystore.properties
+play-service-account*.json
+# Build outputs
+android/app/build/
+android/build/
+android/.gradle/
+android/local.properties
+*.apk
+*.aab

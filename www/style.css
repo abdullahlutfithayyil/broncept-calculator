@@ -1,0 +1,74 @@
+@font-face { font-family: 'Inter'; src: url('fonts/inter.woff2') format('woff2'); font-weight: 100 900; font-display: block; }
+
+/* Brand tokens — mirror the Figma "Calculator Colors" variables (Light / Dark) */
+:root {
+  --bg: #EBEBEB; --text: #1D1D1D; --text-2: #555555;
+  --digit: #D7D7D7; --digit-p: #C7C7C7; --digit-t: #1D1D1D;
+  --fn: #888888;    --fn-p: #C7C7C7;    --fn-t: #1D1D1D;
+  --op: #006AEB;    --op-p: #0055BF;    --op-t: #EBEBEB;
+  --edge: #767676;   /* key outline: 3.8:1 vs page (WCAG 1.4.11) */
+  --negative: #DF0000; --warning: #FF9900; --positive: #00E576;
+  --gap: 14px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1D1D1D; --text: #EBEBEB; --text-2: #888888;
+    --digit: #3D3D3D; --digit-p: #555555; --digit-t: #EBEBEB;
+    --edge: #8A8A8A;   /* 4.9:1 vs page */
+    --fn: #555555;    --fn-p: #777777;    --fn-t: #EBEBEB;   /* pressed state darkened so label keeps >= 3:1 */
+  }
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
+  font-family: 'Inter', system-ui, sans-serif; overflow: hidden; overscroll-behavior: none;
+  -webkit-user-select: none; user-select: none; }
+
+.calc {
+  height: 100%; display: flex; flex-direction: column; max-width: 520px; margin: 0 auto;
+  padding-top: max(env(safe-area-inset-top, 0px), var(--safe-area-inset-top, 0px));
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), var(--safe-area-inset-bottom, 0px));
+  padding-left: max(env(safe-area-inset-left, 0px), var(--safe-area-inset-left, 0px));
+  padding-right: max(env(safe-area-inset-right, 0px), var(--safe-area-inset-right, 0px));
+}
+
+.display { flex: 1 1 0; min-height: 0; padding: 20px 28px; display: flex; flex-direction: column;
+  justify-content: flex-end; align-items: flex-end; gap: 6px; }
+.expr { font-size: 28px; font-weight: 400; color: var(--text-2); min-height: 1.3em; white-space: nowrap; }
+.expr.error { color: var(--negative); font-size: 24px; font-weight: 500; }   /* 24px = "large text": 3:1 required, met in both themes */
+.result { font-size: 96px; font-weight: 300; line-height: 1.05; white-space: nowrap; letter-spacing: -0.02em;
+  max-width: 100%; }
+.result.error { color: var(--negative); }
+
+.keypad { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--gap); padding: 14px 14px 18px; }
+.key { appearance: none; border: 0; padding: 0; margin: 0; aspect-ratio: 1; border-radius: 999px;
+  font: 500 32px/1 'Inter', system-ui, sans-serif; background: var(--digit); color: var(--digit-t);
+  touch-action: manipulation; cursor: pointer; transition: background-color .08s ease-out, transform .08s ease-out; }
+.key:active { background: var(--digit-p); transform: scale(.97); }
+.key:not(.op) { box-shadow: inset 0 0 0 2px var(--edge); }   /* digit + function keys: shape visible at >= 3:1 */
+.key.fn { background: var(--fn); color: var(--fn-t); }  .key.fn:active { background: var(--fn-p); }
+.key.op { background: var(--op); color: var(--op-t); }  .key.op:active { background: var(--op-p); }
+.key.op.active { background: var(--op-t); color: var(--op); }           /* pending operator */
+.key.zero { grid-column: span 2; aspect-ratio: auto; }
+.key:focus-visible { outline: 3px solid var(--text); outline-offset: 3px; }   /* >= 3:1 against the page in both themes */
+
+/* Short screens (landscape / split-screen): shrink keys so everything fits */
+@media (max-height: 560px) { .result { font-size: 56px; } .key { font-size: 24px; aspect-ratio: auto; height: 48px; }
+  .keypad { gap: 8px; padding-bottom: 10px; } }
+
+/* Visually hidden but available to screen readers */
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden;
+  clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0; }
+
+/* Respect "remove animations" */
+@media (prefers-reduced-motion: reduce) { .key { transition: none; } .key:active { transform: none; } }
+
+/* Windows-style / high-contrast modes: keep key shapes visible */
+@media (forced-colors: active) { .key { border: 2px solid ButtonText; } .key.op.active { outline: 3px solid Highlight; } }
+
+/* Long expressions never clip off-screen */
+.expr { max-width: 100%; }
+
+/* Pending operator: the key inverts, so also draw a ring — otherwise on the light theme the key blends into the page.
+   Ring is the operator blue: 4.1:1 (light) / 3.4:1 (dark) against the page, so the active state never relies on colour fill alone. */
+.key.op.active { box-shadow: inset 0 0 0 3px var(--op); }
